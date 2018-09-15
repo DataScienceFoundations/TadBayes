@@ -11,7 +11,6 @@ GPdf: Gaussian PDF
 Beta: Beta Distribution
 """
 
-import copy
 import numpy as np
 import pandas as pd
 import random
@@ -94,6 +93,10 @@ class Pmf(DistBase):
         weighted according to the PMFs current posterior.
         """
         return self.sample(n=n, weights=self.values, replace=replace).index
+    
+    def pmf_copy(self):
+        """Gets a copy of this PMF"""
+        return Pmf(self.copy())
         
     def normalize(self):
         """Normalizes this PMF between 0 and 1"""
@@ -290,7 +293,7 @@ class BasePdf:
         """Returns a PMF representation of this PDF"""
         pmf = Pmf()
         for x in xs:
-            pmf.at[x] = self.Density(x)
+            pmf.at[x] = self.density(x)
         pmf.normalize()
         return pmf
 
@@ -378,21 +381,21 @@ class Beta:
 #######################################
 
 
-def get_init_pmf(hypos):
+def get_init_pmf(hypos, normalize=True):
     """gets a pmf with a uniform prior"""
     pmf = Pmf(1.0, index=hypos)
-    pmf.normalize()
+    if normalize: pmf.normalize()
     return pmf
 
 
-def get_init_pow_law_prior_pmf(hypos, alpha=1.0):
+def get_init_pow_law_prior_pmf(hypos, alpha=1.0, normalize=True):
     """gets a pmf with a power law prior"""
     pmf = Pmf([hypo**(-alpha) for hypo in hypos], index=hypos)
-    pmf.normalize()
+    if normalize: pmf.normalize()
     return pmf
 
 
-def get_pmf_from_seq(seq):
+def get_pmf_from_seq(seq, normalize=True):
     """gets a pmf from a sequence of data
     
     The data, unlike with 'get_init_pmf',
@@ -403,31 +406,33 @@ def get_pmf_from_seq(seq):
     pmf_seq.sort()
     for v in pmf_seq:
         pmf.inc(v)
-    pmf.normalize()
+    if normalize: pmf.normalize()
     return pmf
 
 
-def get_pmf_from_dict(d):
+def get_pmf_from_dict(d, normalize=True):
     """gets a pmf from a dictionary
     
     The dictionary must be formatted
     as a PMF.
     """
     pmf = Pmf(d)
-    pmf.normalize()
+    if normalize: pmf.normalize()
     return pmf
 
 
-def get_meta_pmf(pmfs, probs):
+def get_meta_pmf(pmfs, probs, normalize=True):
     """Gets a meta-PMF.
     
     A meta-PMF is a PMF representing the
     probabilities of other PMFs.
     """
-    return Pmf(probs, index=pd.Index(pmfs, dtype='object'))
+    pmf = Pmf(probs, index=pd.Index(pmfs, dtype='object'))
+    if normalize: pmf.normalize()
+    return pmf
 
 
-def get_mix_pmf(meta_pmf):
+def get_mix_pmf(meta_pmf, normalize=True):
     """Gets a mixture distribution
     
     A mixture is a representation of the probability
@@ -439,7 +444,7 @@ def get_mix_pmf(meta_pmf):
     for pmf, outer_v in meta_pmf.items():
         for i, inner_v in pmf.items():
             mix.inc(i, outer_v*inner_v)
-    mix.normalize()
+    if normalize: pmf.normalize()
     return mix
 
 
@@ -448,28 +453,30 @@ def get_random_sum(pmfs):
     return sum(pmf.sample().index[0] for pmf in pmfs)
 
 
-def get_sample_sum_pmf(pmfs, n):
+def get_sample_sum_pmf(pmfs, n, normalize=True):
     """Gets a PMF representing the sum of 'n' random samples of a distribution"""
-    return get_pmf_from_seq([get_random_sum(pmfs) for _ in range(n)])
+    return get_pmf_from_seq([get_random_sum(pmfs) for _ in range(n)],
+                            normalize=normalize)
 
 
-def get_sample_max_pmf(pmf, samples, iters=100):
+def get_sample_max_pmf(pmf, samples, iters=100, normalize=True):
     """Gets a PMF representing the distribution of the maximum of a number of samples"""
     sample_max_pmf = Pmf()
     for _ in range(iters):
         sample_max_pmf.inc(max(pmf.pmf_sample(n=samples)))
     sample_max_pmf.sort_index(inplace=True)
     sample_max_pmf = Pmf(sample_max_pmf.reindex(pmf.index, fill_value=0.0))
-    sample_max_pmf.normalize()
+    if normalize: pmf.normalize()
     return sample_max_pmf
 
 
-def max_pmf(pmf1, pmf2):
+def max_pmf(pmf1, pmf2, normalize=False):
     """Gets a PMF representing the maximum distribution of two PMFs"""
     pmf = Pmf()
     for i1, v1 in pmf1.items():
         for i2, v2 in pmf2.items():
             pmf.inc(max(i1,i2), v1*v2)
+    if normalize: pmf.normalize()
     return pmf
 
 
