@@ -67,12 +67,27 @@ class Pmf(DistBase):
         If other is another PMF, calls add_pmf.
         If other is not PMF, adds by index.
         To add two PMFs by index, use add().
-        To add two series as PMFs, use add_pmf().
+        This function automatically uses a fill_value
+        of 0.0 if needed.
         """
         if type(self) == type(other):
             return self.add_pmf(other)
         else:
-            return self.add(other)
+            return self.add(other, fill_value=0.0)
+        
+    def __sub__(self, other):
+        """Subtracts other PMF from this PMF
+        
+        If other is another PMF, calls sub_pmf.
+        If other is not PMF, subtracts by index.
+        To subtract two PMFs by index, use sub().
+        This function automatically uses a fill_value
+        of 0.0 if needed.
+        """
+        if type(self) == type(other):
+            return self.sub_pmf(other)
+        else:
+            return self.sub(other, fill_value=0.0)
         
     def add_pmf(self, other):
         """Adds two PMFs together"""
@@ -80,6 +95,14 @@ class Pmf(DistBase):
         for si, sv in self.items():
             for oi, ov in other.items():
                 pmf.inc(si+oi, sv*ov)
+        return pmf
+    
+    def sub_pmf(self, other):
+        """Subtract other from this PMF"""
+        pmf = Pmf()
+        for si, sv in self.items():
+            for oi, ov in other.items():
+                pmf.inc(si-oi, sv*ov)
         return pmf
         
     def pmf_mean(self):
