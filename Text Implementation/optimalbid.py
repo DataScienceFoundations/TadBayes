@@ -5,9 +5,7 @@ match my implementation of the classes used
 throughout Think Bayes.
 """
 
-import sys
-sys.path.append('../')
-
+import chgpath
 import bayes as b
 import pandas as pd
 import numpy as np
