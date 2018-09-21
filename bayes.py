@@ -14,7 +14,8 @@ Beta: Beta Distribution
 import numpy as np
 import pandas as pd
 import random
-import scipy.stats as sp_stats
+import scipy.stats as stats
+import scipy.special as special
 
 
 def odds_for_prob(prob):
@@ -335,11 +336,11 @@ class GPdf(BasePdf):
         
     def density(self, x):
         """Returns the density of GPDF(x)"""
-        return sp_stats.norm.pdf(x, self.mu, self.sigma)
+        return stats.norm.pdf(x, self.mu, self.sigma)
     
     def gpdf_eval(self, x):
         """Returns the evaluation of this GPDF"""
-        return sp_stats.norm.pdf(x, self.mu, self.sigma)
+        return stats.norm.pdf(x, self.mu, self.sigma)
     
     
 class Pdf(BasePdf):
@@ -347,7 +348,7 @@ class Pdf(BasePdf):
     
     def __init__(self, sample):
         """Constructs basic PDF based on sample"""
-        self.kde = sp_stats.gaussian_kde(sample)
+        self.kde = stats.gaussian_kde(sample)
         
     def density(self, x):
         """Returns teh density of PDF(x)"""
@@ -397,6 +398,10 @@ class Beta:
         index = [i / (steps - 1) for i in range(steps)]
         values = [self.eval_pdf(i) for i in index]
         return Pmf(values, index=index)
+    
+    def to_cdf(self, steps=101):
+        xs = np.linspace(0, 1, steps)
+        return Cdf([special.betainc(self.alpha, self.beta, x) for x in xs], index=xs)
 
 
 #######################################
