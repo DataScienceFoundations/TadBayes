@@ -7,8 +7,8 @@ throughout Think Bayes.
 
 import chgpath
 import bayes as b
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 class Player:

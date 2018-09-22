@@ -11,9 +11,9 @@ GPdf: Gaussian PDF
 Beta: Beta Distribution
 """
 
+import random
 import numpy as np
 import pandas as pd
-import random
 import scipy.stats as stats
 import scipy.special as special
 
